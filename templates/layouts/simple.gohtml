@@ -1,0 +1,28 @@
+{{ template "base" . }}
+
+{{ define "extra-css" }}
+    <link type="text/css" rel="stylesheet" href="{{ template "static-url" . }}/css/login.css" />
+{{ end }}
+
+{{ define "body" }}
+
+<div class="ui middle aligned center aligned grid">
+  <div class="column">
+    {{ block "simple-body" . }}
+        <h2 class="ui teal header">
+            <div class="content">
+                {{ block "simple-body-title" . }}{{ end }}
+            </div>
+        </h2>
+        {{ range .ViewData.InfoMessages }}
+        <div class="ui info message">
+            <i class="close icon"></i>
+            {{ . }}
+        </div>
+        {{ end }}
+        {{ block "simple-body-subbody" . }}{{ end }}
+    {{ end }}
+  </div>
+</div>
+
+{{ end}}

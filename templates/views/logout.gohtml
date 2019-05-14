@@ -1,0 +1,28 @@
+{{ template "base" . }}
+
+{{ define "title" }}Winappoint - Logout{{end}}
+
+{{ define "extra-css" }}
+    <link type="text/css" rel="stylesheet" href="{{ template "static-url" . }}/css/login.css" />
+{{ end }}
+
+{{ define "extra-js" }}
+<script>
+    setTimeout(function(){
+        window.location = "{{ template "base-url" . }}/"
+    }, 5000)
+</script>
+{{ end }}
+
+{{ define "body" }}
+
+<div class="ui middle aligned center aligned grid">
+    <div class="column">
+        <div class="ui stacked segment">
+            You are now logged out. You will be automaticly redirected to the landing page in 5 seconds. 
+            Or click this <a href="{{ template "base-url" . }}/">link</a> to go there now 
+        </div>  
+    </div>
+</div>
+
+{{ end}}

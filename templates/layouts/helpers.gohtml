@@ -1,0 +1,5 @@
+{{/* Generates the base url based on the request */}}
+{{ define "base-url" }}http{{ if .Request.TLS }}s{{ end }}://{{.Request.Host}}{{ end }}
+
+{{/* Generates the static content base url */}}
+{{ define "static-url" }}{{ template "base-url" . }}/static{{ end }}

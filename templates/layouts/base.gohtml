@@ -1,0 +1,79 @@
+{{ define "base" }}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{{ block "title" . }}Winappoint{{ end }}</title>
+        {{ block "css" . }}{{ end }}
+        {{ block "extra-css" . }}{{ end }}
+    </head>
+    <body>
+        {{ block "body" . }}
+            
+            {{ template "menu" . }}
+
+            <div class="ui main container">
+                {{ block "content" . }}
+
+                {{ end }}
+            </div>
+
+            {{ template "footer" }}
+        {{ end }}
+    </body>
+    {{ block "js" . }}{{ end }}
+    {{ block "extra-js" .}}{{ end }}
+</html>
+{{ end }}
+
+{{ define "css" }}
+    <link type="text/css" rel="stylesheet" href="{{ template "static-url" . }}/css/fomantic.min.css" />
+    <link type="text/css" rel="stylesheet" href="{{ template "static-url" . }}/css/style.css" />
+{{ end }}
+
+{{ define "js" }}
+    <script type="text/javascript" src="{{ template "static-url" . }}/js/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ template "static-url" . }}/js/fomantic.min.js"></script>
+    <script type="text/javascript" src="{{ template "static-url" . }}/js/main.js"></script>
+{{ end }}
+
+{{ define "menu" }}
+    {{ $user := getUser .Request }}
+    {{ $authenticated := false }}
+    
+    {{ if $user }}
+        {{ if $user.Authenticated }}
+            {{ $authenticated = true }}
+        {{ end }}
+    {{ end }}
+    <div class="ui fixed menu">
+        <div class="ui container">
+            <a href="#" class="item">Menu item 1</a>
+            <a href="#" class="item">Menu item 2</a>
+            <a href="#" class="item">Menu item 3</a>
+            <div class="ui item right">
+                {{ if $authenticated }}
+                    <div>
+                        Hello, {{ $user.FirstName }}
+                    </div>
+                    <div class="ui buttons">
+                        <a class="ui button" href="{{ template "base-url" . }}/logout">Logout</a>
+                    </div>
+                {{ else }}
+                    <div class="ui buttons">
+                        <a class="ui button" href="{{ template "base-url" . }}/login">Login</a>
+                        <div class="or"></div>
+                        <a class="ui positive button" href="{{ template "base-url" . }}/register">Register</a>
+                    </div>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+    
+{{ end }}
+
+{{ define "footer" }}
+    <div class="ui inverted vertical footer segment">
+        Footer
+    </div>
+{{ end }}

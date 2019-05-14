@@ -1,0 +1,60 @@
+{{ template "base" . }}
+
+{{ define "title" }}Winappoint - Login{{end}}
+
+{{ define "extra-css" }}
+    <link type="text/css" rel="stylesheet" href="{{ template "static-url" . }}/css/login.css" />
+{{ end }}
+
+{{ define "body" }}
+
+<div class="ui middle aligned center aligned grid">
+  <div class="column">
+    <h2 class="ui teal header">
+      <div class="content">
+        Log-in to your account
+      </div>
+    </h2>
+    {{ range .ViewData.InfoMessages }}
+    <div class="ui info message">
+        <i class="close icon"></i>
+        {{ . }}
+    </div>
+    {{ end }}
+    <form class="ui large form" action="{{ template "base-url" . }}/login" method="POST">
+      {{ if .ViewData.Error }}
+      <div class="ui negative message">
+        <i class="close icon"></i>
+        <span>
+          {{ .ViewData.Error }}
+        </span>
+      </div>
+      {{ end }}
+      <div class="ui stacked segment">
+        <div class="field">
+          <div class="ui left icon input">
+            <i class="user icon"></i>
+            <input type="text" name="email" placeholder="E-mail address" {{if .ViewData.FormValues.Email }}value="{{ .ViewData.FormValues.Email }}"{{ end }}>
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui left icon input">
+            <i class="lock icon"></i>
+            <input type="password" name="password" placeholder="Password">
+          </div>
+        </div>
+        <input type="submit" class="ui fluid large teal submit button" value="Login"/>
+      </div>
+    </form>
+
+    <div class="ui message">
+      New to us? <a href="{{ template "base-url" . }}/register">Sign Up</a>
+      <div class="ui horizontal divider">
+        Or
+      </div>
+      Forgot your password? <a href="{{ template "base-url" .}}/password-reset"/>Reset your password</a>
+    </div>
+  </div>
+</div>
+
+{{ end}}

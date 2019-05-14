@@ -1,0 +1,124 @@
+{{ template "base" . }}
+
+{{ define "title" }}Winappoint - Register{{end}}
+
+{{ define "extra-css" }}
+    <link type="text/css" rel="stylesheet" href="{{ template "static-url" . }}/css/login.css" />
+{{ end }}
+
+{{ define "body" }}
+
+<div class="ui middle aligned center aligned grid">
+  <div class="column">
+    <h2 class="ui teal header">
+      <div class="content">
+        Register a new account
+      </div>
+    </h2>
+    <form class="ui large form" action="{{ template "base-url" . }}/register" method="POST">
+      {{ if .ViewData.Error }}
+      <div class="ui negative message">
+        <i class="close icon"></i>
+        <span>
+          {{ .ViewData.Error }}
+        </span>
+      </div>
+      {{ end }}
+      <div class="ui stacked segment">
+
+        <div class="field {{ if .ViewData.FormErrors.FirstName }}error{{end}}">
+          <div class="ui left icon input">
+            <i class="user icon"></i>
+            <input type="text" name="FirstName" placeholder="First name" {{if .ViewData.FormValues.FirstName }}value="{{ .ViewData.FormValues.FirstName }}"{{ end }}/>
+          </div>
+          {{ if .ViewData.FormErrors.FirstName }}
+          <div class="ui pointing red basic label">
+            {{ .ViewData.FormErrors.FirstName }}
+          </div>
+          {{ end }}
+        </div>
+
+        <div class="field {{ if .ViewData.FormErrors.LastName }}error{{end}}">
+          <div class="ui left icon input">
+            <i class="user icon"></i>
+            <input type="text" name="LastName" placeholder="Last name" {{if .ViewData.FormValues.LastName }}value="{{ .ViewData.FormValues.LastName }}"{{ end }}/>
+          </div>
+          {{ if .ViewData.FormErrors.LastName }}
+          <div class="ui pointing red basic label">
+            {{ .ViewData.FormErrors.LastName }}
+          </div>
+          {{ end }}
+        </div>
+
+        <div class="field ui calendar date year-first {{ if .ViewData.FormErrors.Birthday }}error{{end}}">
+          <div class="ui left icon input">
+            <i class="calendar icon"></i>
+            <input type="text" name="Birthday" placeholder="Birthday" {{if .ViewData.FormValues.Birthday }}value="{{ .ViewData.FormValues.Birthday }}"{{ end }}/>
+          </div>
+          {{ if .ViewData.FormErrors.Birthday }}
+          <div class="ui pointing red basic label">
+            {{ .ViewData.FormErrors.Birthday }}
+          </div>
+          {{ end }}
+        </div>
+
+        <div class="field {{ if .ViewData.FormErrors.Email }}error{{end}}">
+          <div class="ui left icon input">
+            <i class="at icon"></i>
+            <input type="text" name="Email" placeholder="E-mail address" {{if .ViewData.FormValues.Email }}value="{{ .ViewData.FormValues.Email }}"{{ end }}/>
+          </div>
+          {{ if .ViewData.FormErrors.Email }}
+          <div class="ui pointing red basic label">
+            {{ .ViewData.FormErrors.Email }}
+          </div>
+          {{ end }}
+        </div>
+
+        <div class="field {{ if .ViewData.FormErrors.EmailConfirm }}error{{end}}">
+          <div class="ui left icon input">
+            <i class="at icon"></i>
+            <input type="text" name="EmailConfirm" placeholder="Confirm E-mail address"/>
+          </div>
+          {{ if .ViewData.FormErrors.EmailConfirm }}
+          <div class="ui pointing red basic label">
+            {{ .ViewData.FormErrors.EmailConfirm }}
+          </div>
+          {{ end }}
+        </div>
+
+        <div class="field {{ if .ViewData.FormErrors.Password }}error{{end}}">
+          <div class="ui left icon input">
+            <i class="lock icon"></i>
+            <input type="password" name="Password" placeholder="Password"/>
+          </div>
+          {{ if .ViewData.FormErrors.Password }}
+          <div class="ui pointing red basic label">
+            {{ .ViewData.FormErrors.Password }}
+          </div>
+          {{ end }}
+        </div>
+
+        <div class="field {{ if .ViewData.FormErrors.PasswordConfirm }}error{{end}}">
+          <div class="ui left icon input">
+            <i class="lock icon"></i>
+            <input type="password" name="PasswordConfirm" placeholder="Confirm password"/>
+          </div>
+          {{ if .ViewData.FormErrors.PasswordConfirm }}
+          <div class="ui pointing red basic label">
+            {{ .ViewData.FormErrors.PasswordConfirm }}
+          </div>
+          {{ end }}
+        </div>
+
+        <input type="submit" class="ui fluid large teal submit button" value="Register"/>
+      </div>
+
+    </form>
+
+    <div class="ui message">
+        <a class="ui fluid large gray button" href="{{ template "base-url" .}}/login">I aleady have an account</a>
+    </div>
+  </div>
+</div>
+
+{{ end}}
