@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/dylandreimerink/windesheim-security/db"
 	"html/template"
 	"net/http"
 	"strings"
+
+	"github.com/dylandreimerink/windesheim-security/db"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gobuffalo/packd"
@@ -20,11 +21,12 @@ const TemplateHotParseConfigKey = "template.hot_parse"
 var TemplateBox = packr.New("Template Box", "../templates")
 
 var templates map[string]*template.Template
+var views map[string]*template.Template
 
 var mainTpl = `{{ define "main" }} {{ template "base" . }} {{ end }}`
 
 var templateFuncs = template.FuncMap{
-	"dump": spew.Sdump,
+	"dump":    spew.Sdump,
 	"getUser": templateFuncGetUser,
 }
 
@@ -37,6 +39,9 @@ func loadTemplates() error {
 	//Reset the templates var
 	templates = make(map[string]*template.Template)
 
+	//Reset the views var
+	views = make(map[string]*template.Template)
+
 	//Parse the main template
 	mainTemplate := template.New("main")
 	mainTemplate, err := mainTemplate.Parse(mainTpl)
@@ -46,8 +51,8 @@ func loadTemplates() error {
 
 	mainTemplate.Funcs(templateFuncs)
 
-	//Walk over every layout and parse it as well
-	err = TemplateBox.WalkPrefix("layouts/", func(filename string, file packd.File) error {
+	//Walk over every helper and parse it as well
+	err = TemplateBox.WalkPrefix("helpers/", func(filename string, file packd.File) error {
 		var err error
 		mainTemplate, err = mainTemplate.Parse(file.String())
 		if err != nil {
@@ -59,22 +64,37 @@ func loadTemplates() error {
 		return err
 	}
 
-	//Walk over every view
-	err = TemplateBox.WalkPrefix("views/", func(filename string, file packd.File) error {
-		//Clone the layouts
-		viewTemplate, err := mainTemplate.Clone()
+	//Walk over every layout and parse it as well
+	err = TemplateBox.WalkPrefix("layouts/", func(filename string, file packd.File) error {
+		//Clone the main template
+		layoutTemplate, err := mainTemplate.Clone()
 		if err != nil {
 			return err
 		}
 
-		//Parse the view
-		viewTemplate, err = viewTemplate.Parse(file.String())
+		layoutTemplate, err = layoutTemplate.Parse(file.String())
 		if err != nil {
 			return err
 		}
 
 		//Trim the views map and add it to the template list
-		templates[strings.TrimPrefix(filename, "views/")] = viewTemplate
+		templates[strings.TrimPrefix(filename, "layouts/")] = layoutTemplate
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	//Walk over every view
+	err = TemplateBox.WalkPrefix("views/", func(filename string, file packd.File) error {
+		//Parse the view
+		viewTemplate, err := template.New(filename).Parse(file.String())
+		if err != nil {
+			return err
+		}
+
+		//Trim the views map and add it to the template list
+		views[strings.TrimPrefix(filename, "views/")] = viewTemplate
 
 		return nil
 	})
@@ -92,7 +112,7 @@ type TemplateData struct {
 	ViewData map[string]interface{}
 }
 
-func renderTemplate(w http.ResponseWriter, templateName string, data TemplateData) {
+func renderTemplate(w http.ResponseWriter, templateName string, viewName string, data TemplateData) {
 	if templates == nil || viper.GetBool(TemplateHotParseConfigKey) {
 		err := loadTemplates()
 		if err != nil {
@@ -109,9 +129,27 @@ func renderTemplate(w http.ResponseWriter, templateName string, data TemplateDat
 		return
 	}
 
+	view, ok := views[viewName]
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		logrus.WithField("view", viewName).Error("View doesn't exist")
+		return
+	}
+
+	viewTmpl, err := tmpl.Clone()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		logrus.WithField("template", templateName).Error(errors.WithMessage(err, "Error while cloning template"))
+		return
+	}
+
+	for _, t := range view.Templates() {
+		viewTmpl.AddParseTree(t.Name(), t.Tree)
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	err := tmpl.Execute(w, data)
+	err = viewTmpl.Execute(w, data)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.WithFields(logrus.Fields{

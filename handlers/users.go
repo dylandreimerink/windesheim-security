@@ -47,7 +47,7 @@ func handlerLogin(w http.ResponseWriter, req *http.Request) {
 	}
 
 	render := func() {
-		renderTemplate(w, "login.gohtml", TemplateData{
+		renderTemplate(w, "simple.gohtml", "login.gohtml", TemplateData{
 			Request:  req,
 			ViewData: viewData,
 		})
@@ -131,7 +131,7 @@ func handlerLogout(w http.ResponseWriter, req *http.Request) {
 		session.Options.MaxAge = -1
 	}
 
-	renderTemplate(w, "logout.gohtml", TemplateData{
+	renderTemplate(w, "simple.gohtml", "logout.gohtml", TemplateData{
 		Request: req,
 	})
 }
@@ -152,7 +152,7 @@ func handlerRegister(w http.ResponseWriter, req *http.Request) {
 		viewData["Error"] = userError
 
 		//Render the template
-		renderTemplate(w, "register.gohtml", TemplateData{
+		renderTemplate(w, "simple.gohtml", "register.gohtml", TemplateData{
 			Request:  req,
 			ViewData: viewData,
 		})
@@ -284,7 +284,7 @@ func handlerRegister(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	renderTemplate(w, "register.gohtml", TemplateData{
+	renderTemplate(w, "simple.gohtml", "register.gohtml", TemplateData{
 		Request:  req,
 		ViewData: viewData,
 	})
@@ -296,7 +296,7 @@ func handlerRegisterConfirmEmail(w http.ResponseWriter, req *http.Request) {
 	session := getSessionFromContext(req.Context())
 
 	render := func() {
-		renderTemplate(w, "register-confirm-email.gohtml", TemplateData{
+		renderTemplate(w, "simple.gohtml", "register-confirm-email.gohtml", TemplateData{
 			Request:  req,
 			ViewData: viewData,
 		})
@@ -369,7 +369,7 @@ func handlerResendRegisterCode(w http.ResponseWriter, req *http.Request) {
 	}
 
 	render := func() {
-		renderTemplate(w, "resend-register-code.gohtml", TemplateData{
+		renderTemplate(w, "simple.gohtml", "resend-register-code.gohtml", TemplateData{
 			Request:  req,
 			ViewData: viewData,
 		})

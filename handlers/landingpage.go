@@ -10,7 +10,7 @@ func init() {
 }
 
 func handlerLandingPage(w http.ResponseWriter, req *http.Request) {
-	renderTemplate(w, "landingpage.gohtml", TemplateData{
+	renderTemplate(w, "full-site.gohtml", "landingpage.gohtml", TemplateData{
 		Request: req,
 	})
 }
