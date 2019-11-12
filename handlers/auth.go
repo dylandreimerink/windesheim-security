@@ -15,6 +15,7 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
+	"github.com/pquerna/otp/totp"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
@@ -27,6 +28,7 @@ const NewUserPasswordBcryptCost = "security.user_password_bcrypt_cost"
 func init() {
 	//Register routes
 	Router.HandleFunc("/login", handlerLogin)
+	Router.HandleFunc("/login/2fa", handlerLogin2FA)
 	Router.HandleFunc("/logout", handlerLogout)
 	Router.HandleFunc("/register", handlerRegister)
 	Router.HandleFunc("/register-confirm-email", handlerRegisterConfirmEmail)
@@ -73,6 +75,13 @@ func handlerLogin(w http.ResponseWriter, req *http.Request) {
 		user := &db.User{}
 
 		if err := dbConn.Where("email = ?", email).First(user).Error; err != nil {
+			//If the user doesn't exist return a error to the frontend
+			if gorm.IsRecordNotFoundError(err) {
+				viewData["Error"] = "Invalid email or password"
+				render()
+				return
+			}
+
 			viewData["Error"] = "Internal server error, please try again later"
 			logrus.WithError(err).Error("Error while querying user")
 			render()
@@ -100,19 +109,87 @@ func handlerLogin(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		//TODO check 2FA
-
-		//The user if now authenticated
-		user.Authenticated = true
+		//If the user has only one factor authentication this is enough
+		if user.TwoFactorAuthenticationMode == "none" {
+			//The user if now authenticated
+			user.Authenticated = true
+		} else {
+			//Else two factor authentication is enabled and the user has to complete the second factor before being authenticated
+			user.FirstFactorAuthenticated = true
+		}
 
 		//Save the user in the session
 		session.Values["user"] = user
 
+		if user.FirstFactorAuthenticated {
+			//Redirect to the second authentication page on successfull first factor authentication
+			http.Redirect(w, req, getAbsoluteLink(req, "/login/2fa"), http.StatusSeeOther)
+		}
+
 		//Redirect to landing page on successfull login
 		http.Redirect(w, req, getAbsoluteLink(req, "/"), http.StatusSeeOther)
+
+		return
 	}
 
 	viewData["InfoMessages"] = session.Flashes("info-message")
+
+	render()
+}
+
+func handlerLogin2FA(w http.ResponseWriter, req *http.Request) {
+	session := getSessionFromContext(req.Context())
+
+	user := getUserFromSession(session)
+
+	//If the user is already logged
+	if user.Authenticated {
+		//Redirect to the second authentication page on successfull first factor authentication
+		http.Redirect(w, req, getAbsoluteLink(req, "/"), http.StatusSeeOther)
+		return
+	}
+
+	if !user.FirstFactorAuthenticated {
+		http.Redirect(w, req, getAbsoluteLink(req, "/login"), http.StatusSeeOther)
+		return
+	}
+
+	viewData := map[string]interface{}{
+		"Error": "",
+	}
+
+	render := func() {
+		renderTemplate(w, "simple.gohtml", "login2fa.gohtml", TemplateData{
+			Request:  req,
+			ViewData: viewData,
+		})
+	}
+
+	if req.Method == http.MethodPost {
+		if user.TwoFactorAuthenticationMode == "totp" {
+			code := req.PostFormValue("totp-code")
+			if code == "" {
+				viewData["Error"] = "missing field 'totp-code'"
+				render()
+				return
+			}
+
+			if totp.Validate(code, user.TOTPSecret) {
+				user.Authenticated = true
+
+				http.Redirect(w, req, getAbsoluteLink(req, "/"), http.StatusSeeOther)
+				return
+			} else {
+				user.FirstFactorAuthenticated = false
+
+				http.Redirect(w, req, getAbsoluteLink(req, "/login"), http.StatusSeeOther)
+				return
+			}
+		} else {
+			http.Error(w, "2FA methods other than totp are not yet supported", http.StatusNotImplemented)
+			return
+		}
+	}
 
 	render()
 }
@@ -352,7 +429,7 @@ func handlerRegisterConfirmEmail(w http.ResponseWriter, req *http.Request) {
 
 		session.AddFlash("Account has been activated", "info-message")
 
-		//Redirect to the confirm email page
+		//Redirect to the login page
 		http.Redirect(w, req, fmt.Sprintf("%s://%s%s", schema, req.Host, "/login"), http.StatusSeeOther)
 	}
 

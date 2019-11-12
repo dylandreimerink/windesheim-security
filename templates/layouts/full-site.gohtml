@@ -44,12 +44,12 @@
     {{ end }}
     <div class="ui fixed menu">
         <div class="ui container">
-            <a href="#" class="item">Menu item 1</a>
-            <a href="#" class="item">Menu item 2</a>
+            <a href="{{ template "base-url" . }}/appointment/overview" class="item">Appointments</a>
+            <a href="#" class="item">Organizations</a>
             <a href="#" class="item">Menu item 3</a>
             <div class="right menu">
                 {{ if $authenticated }}
-                    <a href="#" class="item">Profile</a>
+                    <a href="{{ template "base-url" . }}/profile" class="item">Profile</a>
                     <div class="ui item">
                         <div class="ui buttons">
                             <a class="ui button" href="{{ template "base-url" . }}/logout">Logout</a>

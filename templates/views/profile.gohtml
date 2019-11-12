@@ -1,0 +1,102 @@
+{{ define "title" }}Winappoint - Profile{{end}}
+{{ define "extra-js" }}
+  <script type="text/javascript" src="{{ template "static-url" . }}/js/profile.js"></script>
+{{end}}
+
+{{ define "content" }}
+<form class="ui large form" action="{{ template "base-url" . }}/profile" method="POST">
+  {{ if .ViewData.Error }}
+  <div class="ui negative message">
+    <i class="close icon"></i>
+    <span>
+      {{ .ViewData.Error }}
+    </span>
+  </div>
+  {{ end }}
+  <div class="ui positive message hidden" id="positive-message">
+    <i class="close icon"></i>
+    <span>
+    </span>
+  </div>
+  <div class="ui stacked segment">
+    <div class="field {{ if .ViewData.FormErrors.Password }}error{{end}}">
+      <div class="ui left icon input">
+        <i class="lock icon"></i>
+        <input type="password" name="Password" placeholder="Password"/>
+      </div>
+      {{ if .ViewData.FormErrors.Password }}
+      <div class="ui pointing red basic label">
+        {{ .ViewData.FormErrors.Password }}
+      </div>
+      {{ end }}
+    </div>
+
+    <div class="field {{ if .ViewData.FormErrors.PasswordConfirm }}error{{end}}">
+      <div class="ui left icon input">
+        <i class="lock icon"></i>
+        <input type="password" name="PasswordConfirm" placeholder="Confirm password"/>
+      </div>
+      {{ if .ViewData.FormErrors.PasswordConfirm }}
+      <div class="ui pointing red basic label">
+        {{ .ViewData.FormErrors.PasswordConfirm }}
+      </div>
+      {{ end }}
+    </div>
+
+    <input type="submit" class="ui fluid large teal submit button" value="Update password"/>
+  </div>
+</form>
+
+<div class="ui stacked segment">
+  <input type="button" class="ui fluid large teal submit button" value="Setup two factor authentication" id="show-2fa-btn"/>
+</div>
+
+<div class="ui modal" id="two-factor-auth-modal">
+  <i class="close icon"></i>
+  <div class="header">
+    Two factor authentication wizard
+  </div>
+  <div class="content">
+    <div class="ui negative message hidden" id="two-factor-auth-error">
+      <i class="close icon"></i>
+      <span>
+      </span>
+    </div>
+    <form class="ui form">
+      <div class="field">
+        <label>Two factor auth method</label>
+        <select class="ui dropdown" name="2fa-method">
+            <option value="">Method</option>
+            <option value="u2f">FIDO U2F</option>
+            <option value="totp">TOTP (google authenticator)</option>
+        </select>
+      </div>
+
+      <div id="totp" style="display: none;">
+        <img class="ui image" id="totp-qr" src=""/>
+        <div class="ui field">
+          <label>Verify code</label>
+          <div class="ui input">
+            <input type="text" class="ui" id="totp-verify-code"/>
+          </div>
+        </div>
+      </div>
+
+      <div id="u2f" style="display: none;">
+        u2f
+      </div> 
+
+    </form>
+  </div>
+  <div class="actions">
+    <div class="ui black deny button">
+      Cancel
+    </div>
+    <div class="ui positive right labeled icon button" id="submit-2fa">
+      Save
+      <i class="checkmark icon"></i>
+    </div>
+  </div>
+</div>
+
+{{ end}}

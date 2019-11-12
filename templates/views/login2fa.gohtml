@@ -1,0 +1,29 @@
+{{ define "title" }}Winappoint - Login 2FA{{end}}
+
+{{ define "simple-body-title" }}Log-in to your account using 2-factor authentication{{end}}
+
+{{ define "simple-body-subbody" }}
+  <form class="ui large form" action="{{ template "base-url" . }}/login/2fa" method="POST">
+    {{ if .ViewData.Error }}
+    <div class="ui negative message">
+      <i class="close icon"></i>
+      <span>
+        {{ .ViewData.Error }}
+      </span>
+    </div>
+    {{ end }}
+    <div class="ui stacked segment">
+      <div class="field">
+        <div class="ui left icon input">
+          <i class="user icon"></i>
+          <input type="text" name="totp-code" placeholder="TOTP code">
+        </div>
+      </div>
+      <input type="submit" class="ui fluid large teal submit button" value="Login"/>
+    </div>
+  </form>
+
+  <div class="ui message">
+    New to us? <a href="{{ template "base-url" . }}/register">Sign Up</a>
+  </div>
+{{ end }}

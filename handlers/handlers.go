@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/dylandreimerink/windesheim-security/sqlstore"
 	"encoding/base64"
 	"encoding/gob"
 	"net/http"
+
+	"github.com/dylandreimerink/windesheim-security/sqlstore"
 
 	"github.com/dylandreimerink/windesheim-security/db"
 	packr "github.com/gobuffalo/packr/v2"
@@ -18,10 +19,15 @@ const (
 	SessionKeyConfigKey = "security.cookie_key"
 )
 
-//Router is the mux on which all routes will be registered
+//RootRouter is the mux on which all routes will be registered
 var RootRouter = mux.NewRouter()
 
+//Router is the router which is used for insecure dynamic routes
 var Router = RootRouter.PathPrefix("/").Subrouter()
+
+//SecureRouter is the router which is used for secure dynamic routes
+//Only authenticated users may access routes in this router
+var SecureRouter = RootRouter.PathPrefix("/").Subrouter()
 
 var StaticFileBox = packr.New("Static file box", "../static")
 
@@ -33,9 +39,25 @@ func init() {
 
 	//Everything under /static is served by the static file server
 	staticSubrouter.PathPrefix("/").Handler(http.FileServer(StaticFileBox))
-	
+
 	//Add the accesslog middleware to the static file routes
 	staticSubrouter.Use(accessLogMiddleware)
+
+	//Register late header setter so other middleware can rewrite headers
+	Router.Use(lateHeaderSetterMiddleware)
+	//Register session middleware so all routes have access to sessions
+	Router.Use(sessionMiddleware)
+	//Register access log middleware
+	Router.Use(accessLogMiddleware)
+
+	//Register late header setter so other middleware can rewrite headers
+	SecureRouter.Use(lateHeaderSetterMiddleware)
+	//Register session middleware so all routes have access to sessions
+	SecureRouter.Use(sessionMiddleware)
+	//Register authentication middleware
+	SecureRouter.Use(authenticationMiddleware)
+	//Register access log middleware
+	SecureRouter.Use(accessLogMiddleware)
 
 	//Register models at gob
 	gob.Register(&db.User{})

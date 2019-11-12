@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -11,10 +12,7 @@ import (
 )
 
 func init() {
-	//Register the accesslog middleware
-	Router.Use(lateHeaderSetterMiddleware)
-	Router.Use(sessionMiddleware)
-	Router.Use(accessLogMiddleware)
+
 }
 
 //accessLogMiddleware will log all http requests as a access log
@@ -140,4 +138,31 @@ func (lhs *httpLateHeaderSetterResponseWriter) Write(bytes []byte) (int, error) 
 
 func (lhs *httpLateHeaderSetterResponseWriter) WriteHeader(statusCode int) {
 	lhs.Writer.WriteHeader(statusCode)
+}
+
+//The security middleware checks if the request was made by a authenticated client
+//If not, a 401 will be returned and a location header pointing to the login page
+func authenticationMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		session := getSessionFromContext(req.Context())
+
+		schema := "http"
+		if req.TLS != nil {
+			schema += "s"
+		}
+
+		loginLink := fmt.Sprintf("%s://%s%s", schema, req.Host, "/login")
+
+		user := getUserFromSession(session)
+		if user == nil {
+			//Write JS redirect
+			fmt.Fprintf(w, "<script>window.location='%s'</script>", loginLink)
+
+			//Redirect to the login page
+			http.Redirect(w, req, loginLink, http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, req)
+	})
 }

@@ -1,0 +1,71 @@
+{{ define "title" }}Winappoint - Appointment overview{{end}}
+
+{{ define "extra-css" }}
+    <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.3.1/main.min.css' rel='stylesheet' />
+    <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.3.0/main.min.css' rel='stylesheet' />
+    <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@4.3.0/main.min.css' rel='stylesheet' />
+    <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/list@4.3.0/main.min.css' rel='stylesheet' />
+{{ end }}
+
+{{ define "extra-js" }}
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@4.3.1/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@4.3.0/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@4.3.0/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/list@4.3.0/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@4.3.0/main.min.js'></script>
+{{ end }}
+
+{{ define "content" }}
+    <script>
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+
+        var lastSelect = null;
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            plugins: [ 'interaction', 'dayGrid', 'timeGrid', 'list' ],
+
+            defaultView: "timeGridWeek",
+
+            customButtons: {
+                createAppointment: {
+                    text: "Create new appointment",
+                    click: function(){
+                        var location = "/appointment/new";
+                        if( lastSelect != null ) {
+                            location += "?" + jQuery.param({
+                                "start": lastSelect.startStr,
+                                "end": lastSelect.endStr,
+                                "allDay": lastSelect.allDay,
+                            });
+                        }
+                        window.location = location;
+                    }
+                }
+            },
+            header: { 
+                center: 'timeGridDay,timeGridWeek,dayGridMonth,list',
+                right: 'today prev,next createAppointment',
+            },
+
+            nowIndicator: true,
+
+            height: 'auto',
+
+            events: "/appointment/feed",
+
+            selectable: true,
+            select: function(event) {
+                lastSelect = event;
+            }
+        });
+
+        calendar.render();
+      });
+
+    </script>
+
+    <div id='calendar'></div>
+
+{{ end }}

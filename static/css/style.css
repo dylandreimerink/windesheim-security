@@ -1,4 +1,5 @@
 /* The main container holding the body content */
 div.ui.main.container {
-    padding-top: 65px /* Add space at the top because of the fixed menu */
+    padding-top: 75px /* Add space at the top because of the fixed menu */;
+    min-height: calc(100% - 47px) /* Make the container a minimum height so the footer is at the bottom, 47px is the height of the footer(adjust when necessary) */;
 }
