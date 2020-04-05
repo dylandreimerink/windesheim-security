@@ -1,0 +1,94 @@
+{{ define "title" }}Winnote - Edit user{{end}}
+{{ define "extra-js" }}
+  <script type="text/javascript" src="{{ template "static-url" . }}/js/profile.js"></script>
+{{end}}
+
+{{ define "content" }}
+<div class="ui stacked segment">
+  <div class="ui form">
+    <div class="three fields">
+      <div class="field">
+        <label>First Name</label>
+        <input placeholder="Read Only" disabled="" type="text" value="{{ .ViewData.User.FirstName }}" />
+      </div>
+      <div class="field">
+        <label>Last Name</label>
+        <input placeholder="Read Only" disabled="" type="text" value="{{ .ViewData.User.LastName }}" />
+      </div>
+      <div class="field">
+        <label>Email address</label>
+        <input placeholder="Read Only" disabled="" type="text" value="{{ .ViewData.User.Email }}" />
+      </div>
+    </div>
+  </div>
+</div>
+<form class="ui large form" action="{{ template "base-url" . }}/users/{{ .ViewData.User.ID }}" method="POST">
+  <input type="hidden" name="csrf-token" value="{{ .ViewData.CSRFToken }}"/>
+  {{ if .ViewData.Error }}
+  <div class="ui negative message">
+    <i class="close icon"></i>
+    <span>
+      {{ .ViewData.Error }}
+    </span>
+  </div>
+  {{ end }}
+  {{ if .ViewData.Success }}
+  <div class="ui positive message">
+    <i class="close icon"></i>
+    <span>
+      {{ .ViewData.Success }}
+    </span>
+  </div>
+  {{ end }}
+  <div class="ui stacked segment">
+    <div class="field {{ if .ViewData.FormErrors.Password }}error{{end}}">
+      <div class="ui left icon input">
+        <i class="lock icon"></i>
+        <input type="password" name="Password" placeholder="Password"/>
+      </div>
+      {{ if .ViewData.FormErrors.Password }}
+      <div class="ui pointing red basic label">
+         {{ if eq .ViewData.FormErrors.Password.Tag "strong-password" }}
+          Your password is not strong enough, it must:
+          <ul>
+            <li>Have at least 8 characters</li>
+            <li>Have at least 1 lower case letter</li>
+            <li>Have at least 1 upper case letter</li>
+            <li>Have at least 1 special character</li>
+            <li>Have at least 1 number</li>
+          </ul>
+        {{ else }}
+          {{ .ViewData.FormErrors.Password.Translate .ViewData.Translator }}
+        {{ end }}
+      </div>
+      {{ end }}
+    </div>
+
+    <div class="field {{ if .ViewData.FormErrors.PasswordConfirm }}error{{end}}">
+      <div class="ui left icon input">
+        <i class="lock icon"></i>
+        <input type="password" name="PasswordConfirm" placeholder="Confirm password"/>
+      </div>
+      {{ if .ViewData.FormErrors.PasswordConfirm }}
+      <div class="ui pointing red basic label">
+        {{ .ViewData.FormErrors.PasswordConfirm.Translate .ViewData.Translator }}
+      </div>
+      {{ end }}
+    </div>
+
+    <input type="submit" class="ui fluid large teal submit button" name="update-password" value="Update password"/>
+  </div>
+</form>
+
+<div class="ui stacked segment">
+  {{ if .ViewData.User.TOTPSecret.Valid }}
+    <form method="POST" action="{{ template "base-url" . }}/users/{{ .ViewData.User.ID }}">
+      <input type="hidden" name="csrf-token" value="{{ .ViewData.CSRFToken }}"/>
+      <input type="submit" class="ui fluid large teal submit button" name="reset-2fa" value="Reset 2-factor authentication secret"/>
+    </form>
+  {{ else }}
+    <p>Two factor authentication is not set</p>
+  {{ end }}
+</div>
+
+{{ end}}

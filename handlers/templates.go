@@ -3,6 +3,7 @@ package handlers
 import (
 	"html/template"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/dylandreimerink/windesheim-security/db"
@@ -26,8 +27,9 @@ var views map[string]*template.Template
 var mainTpl = `{{ define "main" }} {{ template "base" . }} {{ end }}`
 
 var templateFuncs = template.FuncMap{
-	"dump":    spew.Sdump,
-	"getUser": templateFuncGetUser,
+	"dump":           spew.Sdump,
+	"getUser":        templateFuncGetUser,
+	"elementInSlice": templateFuncElemInSlice,
 }
 
 func init() {
@@ -88,7 +90,11 @@ func loadTemplates() error {
 	//Walk over every view
 	err = TemplateBox.WalkPrefix("views/", func(filename string, file packd.File) error {
 		//Parse the view
-		viewTemplate, err := template.New(filename).Parse(file.String())
+		viewTemplate := template.New(filename)
+
+		viewTemplate.Funcs(templateFuncs)
+
+		viewTemplate, err := viewTemplate.Parse(file.String())
 		if err != nil {
 			return err
 		}
@@ -163,4 +169,19 @@ func renderTemplate(w http.ResponseWriter, templateName string, viewName string,
 func templateFuncGetUser(req *http.Request) *db.User {
 	session := getSessionFromContext(req.Context())
 	return getUserFromSession(session)
+}
+
+func templateFuncElemInSlice(slice interface{}, element interface{}) bool {
+	switch reflect.TypeOf(slice).Kind() {
+	case reflect.Slice:
+		s := reflect.ValueOf(slice)
+
+		for i := 0; i < s.Len(); i++ {
+			if s.Index(i) == element {
+				return true
+			}
+		}
+	}
+
+	return false
 }

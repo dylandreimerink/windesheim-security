@@ -1,4 +1,4 @@
-{{ define "title" }}Winappoint - Profile{{end}}
+{{ define "title" }}Winnote - Profile{{end}}
 {{ define "extra-js" }}
   <script type="text/javascript" src="{{ template "static-url" . }}/js/profile.js"></script>
 {{end}}
@@ -48,13 +48,17 @@
 </form>
 
 <div class="ui stacked segment">
-  <input type="button" class="ui fluid large teal submit button" value="Setup two factor authentication" id="show-2fa-btn"/>
+  {{ if (getUser .Request).TOTPSecret.Valid }}
+    <p>Two factor authentication is aleady set, please contact our helpdesk to reset it</p>
+  {{ else }}
+    <input type="button" class="ui fluid large teal submit button" value="Setup two factor authentication" id="show-2fa-btn"/>
+  {{ end }}
 </div>
 
 <div class="ui modal" id="two-factor-auth-modal">
   <i class="close icon"></i>
   <div class="header">
-    Two factor authentication wizard
+    Setup TOTP 2FA
   </div>
   <div class="content">
     <div class="ui negative message hidden" id="two-factor-auth-error">
@@ -63,15 +67,6 @@
       </span>
     </div>
     <form class="ui form">
-      <div class="field">
-        <label>Two factor auth method</label>
-        <select class="ui dropdown" name="2fa-method">
-            <option value="">Method</option>
-            <option value="u2f">FIDO U2F</option>
-            <option value="totp">TOTP (google authenticator)</option>
-        </select>
-      </div>
-
       <div id="totp" style="display: none;">
         <img class="ui image" id="totp-qr" src=""/>
         <div class="ui field">

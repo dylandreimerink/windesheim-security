@@ -1,4 +1,6 @@
-{{ define "title" }}Winappoint - Login{{end}}
+{{ define "title" }}Winnote - Login{{end}}
+
+{{ define "extra-js" }}<script src="https://www.google.com/recaptcha/api.js" async defer></script>{{end}}
 
 {{ define "simple-body-title" }}Log-in to your account{{end}}
 
@@ -24,6 +26,9 @@
           <i class="lock icon"></i>
           <input type="password" name="password" placeholder="Password">
         </div>
+      </div>
+      <div class="field">
+        <div class="g-recaptcha" data-sitekey="{{ .ViewData.RecaptchaSiteKey }}"></div>
       </div>
       <input type="submit" class="ui fluid large teal submit button" value="Login"/>
     </div>

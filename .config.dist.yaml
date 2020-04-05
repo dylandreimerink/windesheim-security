@@ -1,0 +1,79 @@
+# All configuration options for the mysql database connection
+mysql:
+  #
+  connection_string: "{user}:{password}@{hostname}/{db}?charset=utf8&parseTime=True&loc=Local"
+
+  # If true database queries will be logged (default: false)
+  logs_enabled: true
+
+# Settings related to the HTTP server
+http:
+  # The domain name of the server (default: localhost)
+  domainname: "localhost"
+  # The port HTTP requests will be served on (default: 80)
+  port: 80
+  # TLS settings
+  tls:
+    # If 'true' TLS will be enabled (default: false)
+    enabled: false
+    # If 'true' and TLS is enabled, all http requests will be redirected to the 'https' variant.
+    redirect_http: true 
+    # The port HTTPS requests will be served on (default: 443)
+    port: 443
+    # The path to the PEM encoded x.509 certificate (blank by default)
+    cert_path: ./winnote.nl.local.crt
+    # The path to the PEM encoded TLS key (EC or RSA) (blank by default)
+    key_path: ./winnote.nl.local.key
+
+# Settings related to log output
+logging:
+
+  # The level of log detail to output, valid values: FATAL, PANIC, ERROR, WARNING, INFO, DEBUG and TRACE (default: INFO)
+  level: INFO
+
+  # Where logs will go options are: stdout or file (default: stdout)
+  to: stdout
+
+  # If 'to' is file this determins the location of the log file (blank by default)
+  file_path: ./logs.txt
+
+# Settings related to the templating engine
+template:
+  # If true the templates will be parsed for every request (default: false)
+  # This option is usefull while developing but bad for performance
+  hot_parse: false
+
+# Settings related to security
+security:
+  # The bcrypt cost of the password hashes of new users (default: 12) (min: 4, max: 31)
+  user_password_bcrypt_cost: 12
+  
+  # The base64 encoded cookie authentication key
+  cookie_key: 
+
+  # The google recaptcha keys https://developers.google.com/recaptcha/intro
+  recaptcha:
+    # The public site key to be sent to the client
+    site_key: 
+    
+    # The secret key to be kept on the server
+    secret_key: 
+
+    # The url at which we can check if the captcha response is valid
+    check_url: https://www.google.com/recaptcha/api/siteverify
+
+# Settings related to sending emails
+email:
+
+  # Settings related to SMTP
+  smtp:
+    # The hostname of the SMTP server (default: localhost)
+    hostname: localhost
+    # The port of the SMTP server (default: 587)
+    port: 587
+    # The username used to login to the SMTP server
+    # username: testuser
+    # The password used to login to the SMTP server
+    # password: Changeme123
+    # If true the TLS certificate will not be verified (default: true)
+    skip_tls_verification: false

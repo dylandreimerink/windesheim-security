@@ -1,0 +1,11 @@
+{{ define "base" }}
+<html>
+    <head>
+        <meta http-equiv="refresh" content="5;url={{ template "base-url" . }}{{ .ViewData.Path }}" />
+        <title>{{ .ViewData.Text }}</title>
+    </head>
+    <body>
+    {{ .ViewData.Text }}. You will be redirected in 5 seconds or Click <a href="{{ template "base-url" . }}{{ .ViewData.Path }}">here</a> to go right away.
+    </body>
+</html>
+{{ end }}

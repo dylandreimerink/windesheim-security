@@ -3,7 +3,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>{{ block "title" . }}Winappoint{{ end }}</title>
+        <title>{{ block "title" . }}Winnote{{ end }}</title>
         {{ block "css" . }}
             <link type="text/css" rel="stylesheet" href="{{ template "static-url" . }}/css/fomantic.min.css" />
             <link type="text/css" rel="stylesheet" href="{{ template "static-url" . }}/css/style.css" />
@@ -44,9 +44,14 @@
     {{ end }}
     <div class="ui fixed menu">
         <div class="ui container">
-            <a href="{{ template "base-url" . }}/appointment/overview" class="item">Appointments</a>
-            <a href="#" class="item">Organizations</a>
-            <a href="#" class="item">Menu item 3</a>
+            <a href="{{ template "base-url" . }}/note/overview" class="item">Notes</a>
+
+            {{ if $authenticated }}
+                {{ if $user.HasPermssion "READ_USER" }}
+                    <a href="{{ template "base-url" . }}/users" class="item">Users</a>
+                {{ end }}
+            {{ end }}
+
             <div class="right menu">
                 {{ if $authenticated }}
                     <a href="{{ template "base-url" . }}/profile" class="item">Profile</a>

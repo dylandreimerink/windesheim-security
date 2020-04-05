@@ -3,10 +3,13 @@ package handlers
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"net/http"
+	"runtime/debug"
 	"time"
 
+	"github.com/jinzhu/gorm"
+
+	"github.com/dylandreimerink/windesheim-security/db"
 	"github.com/gorilla/sessions"
 	"github.com/sirupsen/logrus"
 )
@@ -71,7 +74,7 @@ func sessionMiddleware(next http.Handler) http.Handler {
 		store := GetSessionStore()
 
 		//Get the session from the store
-		session, err := store.Get(req, "winappoint")
+		session, err := store.Get(req, "winnote")
 		if err != nil {
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			logrus.WithError(err).Error("Error while getting session")
@@ -124,8 +127,9 @@ func lateHeaderSetterMiddleware(next http.Handler) http.Handler {
 }
 
 type httpLateHeaderSetterResponseWriter struct {
-	Writer     http.ResponseWriter
-	BodyBuffer bytes.Buffer
+	HeaderWritten bool
+	Writer        http.ResponseWriter
+	BodyBuffer    bytes.Buffer
 }
 
 func (lhs *httpLateHeaderSetterResponseWriter) Header() http.Header {
@@ -138,6 +142,10 @@ func (lhs *httpLateHeaderSetterResponseWriter) Write(bytes []byte) (int, error) 
 
 func (lhs *httpLateHeaderSetterResponseWriter) WriteHeader(statusCode int) {
 	lhs.Writer.WriteHeader(statusCode)
+	if lhs.HeaderWritten {
+		debug.PrintStack()
+	}
+	lhs.HeaderWritten = true
 }
 
 //The security middleware checks if the request was made by a authenticated client
@@ -151,15 +159,57 @@ func authenticationMiddleware(next http.Handler) http.Handler {
 			schema += "s"
 		}
 
-		loginLink := fmt.Sprintf("%s://%s%s", schema, req.Host, "/login")
+		sessionUser := getUserFromSession(session)
+		if sessionUser == nil {
+			htmlRedirect(w, req, "/login", "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 
-		user := getUserFromSession(session)
-		if user == nil {
-			//Write JS redirect
-			fmt.Fprintf(w, "<script>window.location='%s'</script>", loginLink)
+		//If not authenticated
+		if !sessionUser.Authenticated {
+			//Remove user from session
+			delete(session.Values, "user")
 
-			//Redirect to the login page
-			http.Redirect(w, req, loginLink, http.StatusUnauthorized)
+			htmlRedirect(w, req, "/login", "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		conn, err := db.GetConnection()
+		if err != nil {
+			logrus.WithError(err).Error("Error while getting connection")
+			htmlRedirect(w, req, "/login", "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		var dbUser db.User
+		if err := conn.First(&dbUser, "id = ?", sessionUser.ID).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				logrus.WithError(err).Error("Error while getting user from db")
+			}
+
+			//Remove user from session
+			delete(session.Values, "user")
+
+			htmlRedirect(w, req, "/login", "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		//If the user has been archived, invalidate the session and redirect to the login page
+		if dbUser.Archived {
+			//Remove user from session
+			delete(session.Values, "user")
+
+			htmlRedirect(w, req, "/login", "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		//If the password hash or 2fa token has been changed between the start of the session and now.
+		//We must invalidate the session
+		if !bytes.Equal(dbUser.PasswordHash, sessionUser.PasswordHash) || dbUser.TOTPSecret.String != dbUser.TOTPSecret.String {
+			//Remove user from session
+			delete(session.Values, "user")
+
+			htmlRedirect(w, req, "/login", "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 

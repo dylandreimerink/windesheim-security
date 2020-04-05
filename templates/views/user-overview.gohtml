@@ -1,0 +1,135 @@
+{{ define "title" }}Winnote - User overview{{end}}
+
+{{ define "extra-js" }}
+<script>
+
+var submitted = false;
+
+$("#delete-form").submit(function(event){
+  $(".collapsing .checkbox").each(function(){
+    var id = $(this).attr("user-id");
+
+    var inputs = $("#delete-form input[name='user["+id+"]']");
+    if( $(this).checkbox("is checked") ) {
+      $("#delete-form").append("<input type='hidden' name='user["+ id +"]' value='delete' />");
+    } else {
+      inputs.detach();    
+    }
+  });
+})
+
+$("#archive-form").submit(function(event){
+  $(".collapsing .checkbox").each(function(){
+    var id = $(this).attr("user-id");
+
+    var inputs = $("#archive-form input[name='user["+id+"]']");
+    if( $(this).checkbox("is checked") ) {
+      $("#archive-form").append("<input type='hidden' name='user["+ id +"]' value='archive' />");
+    } else {
+      inputs.detach();    
+    }
+  });
+})
+
+</script>
+{{ end }}
+
+{{ define "content" }}
+<table class="ui compact striped celled definition table">
+  <thead class="full-width">
+    <tr>
+      <th></th>
+      <th>Name</th>
+      <th>E-mail address</th>
+      <th>Archived</th>
+      <th>Activated</th>
+      <th {{ if $.ViewData.MayEdit }} colspan="2" {{ end }}>Registered at</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{ range .ViewData.Users }}
+        <tr {{if .Archived }}style="text-decoration: line-through;"{{end}}>
+            <td class="collapsing">
+                <div class="ui fitted slider checkbox" user-id="{{ .ID }}">
+                    <input type="checkbox"> <label></label>
+                </div>
+            </td>
+            <td>{{ .FirstName }} {{ .LastName }}</td>
+            <td>{{ .Email }}</td>
+            <td>{{ .Archived }}</td>
+            <td>{{ .Activated }}</td>
+            <td>{{ .CreatedAt }}</td>
+            {{ if $.ViewData.MayEdit }}
+                <td>
+                    <a class="ui compact button" href="{{ template "base-url" $ }}/users/{{.ID}}">
+                        <i class="cog icon"></i>
+                        Edit
+                    </a>
+                </td>
+            {{ end }}
+        </tr>
+    {{ end }}
+  </tbody>
+  <tfoot class="full-width">
+    <tr>
+      <th></th>
+      <th colspan="6">
+        {{ if .ViewData.MayCreate }}
+          <div class="ui left floated small blue button" onClick="$('#create-user').modal('show')">
+            New user
+          </div>
+        {{ end }}
+        {{ if .ViewData.MayDelete }}
+          <form action="{{ template "base-url" . }}/users/delete" method="POST" id="delete-form">
+            <input type="hidden" name="csrf-token" value="{{ .ViewData.CSRFToken }}"/>
+            <input type="submit" class="ui right floated small red button" name="submit" value="Delete"/>
+          </form>
+        {{ end }}
+        {{ if .ViewData.MayArchive }}
+          <form action="{{ template "base-url" . }}/users/archive" method="POST" id="archive-form">
+            <input type="hidden" name="csrf-token" value="{{ .ViewData.CSRFToken }}"/>
+            <input type="submit" class="ui right floated small gray button" name="submit" value="Archive / Restore"/>
+          </form>
+        {{ end }}
+      </th>
+    </tr>
+  </tfoot>
+</table>
+
+<div class="ui modal" id="create-user">
+  <i class="close icon"></i>
+  <div class="header">
+    Create new user
+  </div>
+  <div class="content">
+    <form class="ui form" method="POST" action="{{ template "base-url" . }}/users/new" id="new-user-form">
+      <div class="field">
+        <label>First Name</label>
+        <input type="text" name="FirstName" placeholder="First Name">
+      </div>
+      <div class="field">
+        <label>Last Name</label>
+        <input type="text" name="LastName" placeholder="Last Name">
+      </div>
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" name="Email" placeholder="Email address">
+      </div>
+       <div class="field">
+        <label>Password</label>
+        <input type="password" name="Password" placeholder="Password">
+      </div>
+    </form>
+  </div>
+  <div class="actions">
+    <div class="ui black deny button">
+      Nope
+    </div>
+    <div class="ui positive right labeled icon button" onClick="$('#new-user-form').submit()">
+      Submit
+      <i class="checkmark icon"></i>
+    </div>
+  </div>
+</div>
+
+{{ end }}

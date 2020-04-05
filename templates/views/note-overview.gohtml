@@ -1,0 +1,71 @@
+{{ define "title" }}Winnote - Notes overview{{end}}
+
+{{ define "extra-js" }}
+<script>
+
+function showDeleteModal(id){
+    $('#delete-form').attr('action', '{{ template "base-url" . }}/note/' + id + '/delete');
+    $('#delete-modal').modal('show');
+}
+
+</script>
+{{ end }}
+
+{{ define "content" }}
+
+    <div class="ui buttons">
+        <a class="ui button primary" href="{{ template "base-url" . }}/note">Add note</a>
+    </div>
+
+    <div class="ui divider"></div>
+
+    {{ if .ViewData.Notes }}
+    <div class="ui cards">
+        {{ range .ViewData.Notes }}
+            <div class="card">
+                <div class="content">
+                    <div class="header">
+                        {{ .Title }}
+                    </div>
+                    <div class="description">
+                        {{ .Value }}
+                    </div>
+                </div>
+                <div class="extra content">
+                    <div class="ui two buttons">
+                        <a class="ui basic green button" href="{{ template "base-url" $ }}/note/{{ .ID }}">Edit</a>
+                        <div class="ui basic red button" onClick="showDeleteModal({{ .ID }})">Delete</div>
+                    </div>
+                </div>
+            </div>
+        {{ end }}
+    </div>
+    {{ else }}
+        You currently have no notes.
+    {{ end }}
+
+    <form action="{{ template "base-url" . }}/note/-1/delete" method="POST" id="delete-form">
+        <input type="hidden" name="csrf-token" value="{{ .ViewData.CSRFToken }}"/>
+        <div class="ui basic modal" id="delete-modal">
+            <div class="ui icon header">
+                <i class="trash icon"></i>
+                Delete note
+            </div>
+            <div class="content">
+                <p>Are you sure you want to remove this note?</p>
+            </div>
+            
+            <div class="actions">
+                <div class="ui red basic cancel inverted button">
+                <i class="remove icon"></i>
+                No
+                </div>
+                <div class="ui green ok inverted button" onClick="$('#delete-form').submit()">
+                <i class="checkmark icon"></i>
+                Yes
+                </div>
+            </div>
+        </div>
+    </form>
+
+{{ end }}

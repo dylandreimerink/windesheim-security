@@ -88,9 +88,9 @@ func GetSessionStore() sessions.Store {
 
 	sqlStore := sqlstore.New(conn.DB(), cookieKey)
 	sqlStore.Options = &sessions.Options{
-		Path:   "/",
-		MaxAge: 86400 * 30, //1 month
-		//Secure:   true, //Uncomment when in production
+		Path:     "/",
+		MaxAge:   86400 * 30, //1 month
+		Secure:   viper.GetBool("http.tls.enabled") && viper.GetBool("http.tls.redirect_http"),
 		SameSite: http.SameSiteStrictMode,
 		HttpOnly: true,
 	}

@@ -1,0 +1,49 @@
+{{ define "title" }}Winnote - {{if eq .ViewData.NoteID -1}}New{{else}}Edit{{end}} Note{{end}}
+
+{{ define "content" }}
+<h2>{{if eq .ViewData.NoteID -1}}New{{else}}Edit{{end}} Note</h2>
+<form class="ui large form" action="{{ template "base-url" . }}/note{{if not (eq .ViewData.NoteID -1)}}/{{ .ViewData.NoteID }}{{end}}" method="POST">
+  <input type="hidden" name="csrf-token" value="{{ .ViewData.CSRFToken }}"/>
+  {{ if .ViewData.Error }}
+  <div class="ui negative message">
+    <i class="close icon"></i>
+    <span>
+      {{ .ViewData.Error }}
+    </span>
+  </div>
+  {{ end }}
+  {{ if .ViewData.Success }}
+  <div class="ui positive message">
+    <i class="close icon"></i>
+    <span>
+      {{ .ViewData.Success }}
+    </span>
+  </div>
+  {{ end }}
+  <div class="ui stacked segment">
+    <div class="field {{ if .ViewData.FormErrors.Title }}error{{end}}">
+      <div class="ui left input">
+        <input type="text" name="Title" placeholder="Title" value="{{ .ViewData.Note.Title }}"/>
+      </div>
+      {{ if .ViewData.FormErrors.Title }}
+      <div class="ui pointing red basic label">
+        {{ .ViewData.FormErrors.Title.Translate .ViewData.Translator }}
+      </div>
+      {{ end }}
+    </div>
+
+    <div class="field {{ if .ViewData.FormErrors.NoteValue }}error{{end}}">
+      <div class="ui left input">
+        <textarea name="NoteValue" placeholder="Note value">{{ .ViewData.Note.Value }}</textarea>
+      </div>
+      {{ if .ViewData.FormErrors.NoteValue }}
+      <div class="ui pointing red basic label">
+        {{ .ViewData.FormErrors.NoteValue.Translate .ViewData.Translator }}
+      </div>
+      {{ end }}
+    </div>
+
+    <input type="submit" class="ui fluid large teal submit button" name="save-note" value="{{if not (eq .ViewData.NoteID -1)}}Update{{else}}Create{{end}} note"/>
+  </div>
+</form>
+{{ end }}
