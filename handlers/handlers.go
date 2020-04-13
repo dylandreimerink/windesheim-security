@@ -3,7 +3,10 @@ package handlers
 import (
 	"encoding/base64"
 	"encoding/gob"
+	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/dylandreimerink/windesheim-security/sqlstore"
 
@@ -38,7 +41,18 @@ func init() {
 	staticSubrouter := RootRouter.PathPrefix("/static").Subrouter()
 
 	//Everything under /static is served by the static file server
-	staticSubrouter.PathPrefix("/").Handler(http.FileServer(StaticFileBox))
+	staticSubrouter.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		req.RequestURI = strings.TrimPrefix(req.RequestURI, "/static/")
+
+		var err error
+		req.URL, err = url.Parse(req.RequestURI)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, err.Error())
+		}
+
+		http.FileServer(StaticFileBox).ServeHTTP(w, req)
+	}))
 
 	//Add the accesslog middleware to the static file routes
 	staticSubrouter.Use(accessLogMiddleware)
