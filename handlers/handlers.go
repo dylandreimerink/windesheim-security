@@ -42,6 +42,8 @@ func init() {
 
 	//Everything under /static is served by the static file server
 	staticSubrouter.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Cache-Control", "public, max-age=604800, immutable")
+
 		req.RequestURI = strings.TrimPrefix(req.RequestURI, "/static/")
 
 		var err error
@@ -63,6 +65,8 @@ func init() {
 	Router.Use(sessionMiddleware)
 	//Register access log middleware
 	Router.Use(accessLogMiddleware)
+	//Security header middleware
+	Router.Use(securityHeadersMiddleware)
 
 	//Register late header setter so other middleware can rewrite headers
 	SecureRouter.Use(lateHeaderSetterMiddleware)
@@ -72,6 +76,8 @@ func init() {
 	SecureRouter.Use(authenticationMiddleware)
 	//Register access log middleware
 	SecureRouter.Use(accessLogMiddleware)
+	//Security header middleware
+	Router.Use(securityHeadersMiddleware)
 
 	//Register models at gob
 	gob.Register(&db.User{})
@@ -102,6 +108,7 @@ func GetSessionStore() sessions.Store {
 
 	sqlStore := sqlstore.New(conn.DB(), cookieKey)
 	sqlStore.Options = &sessions.Options{
+		Domain:   viper.GetString("http.domainname"),
 		Path:     "/",
 		MaxAge:   86400 * 30, //1 month
 		Secure:   viper.GetBool("http.tls.enabled") && viper.GetBool("http.tls.redirect_http"),

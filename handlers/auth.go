@@ -104,6 +104,16 @@ func handlerLogin(w http.ResponseWriter, req *http.Request) {
 	}
 
 	render := func() {
+		var err error
+		session.Values["csrfToken"], err = generateCSRFToken()
+		if err != nil {
+			logrus.WithError(err).Error("Error while generating CSRF token")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		viewData["CSRFToken"] = session.Values["csrfToken"]
+
 		renderTemplate(w, "simple.gohtml", "login.gohtml", TemplateData{
 			Request:  req,
 			ViewData: viewData,
@@ -118,6 +128,14 @@ func handlerLogin(w http.ResponseWriter, req *http.Request) {
 
 		viewData["FormValues"] = map[string]string{
 			"Email": email,
+		}
+
+		token := req.FormValue("csrf-token")
+		if token != session.Values["csrfToken"].(string) {
+			viewData["Error"] = "Invalid CSRF token, please try again"
+
+			render()
+			return
 		}
 
 		if !isRecaptchaValid(captchaResponse) {

@@ -6,6 +6,7 @@
 
 {{ define "simple-body-subbody" }}
   <form class="ui large form" action="{{ template "base-url" . }}/login" method="POST">
+    <input type="hidden" name="csrf-token" value="{{ .ViewData.CSRFToken }}"/>
     {{ if .ViewData.Error }}
     <div class="ui negative message">
       <i class="close icon"></i>
