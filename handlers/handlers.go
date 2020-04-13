@@ -43,6 +43,7 @@ func init() {
 	//Everything under /static is served by the static file server
 	staticSubrouter.PathPrefix("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=604800, immutable")
+		w.Header().Del("Pragma")
 
 		req.RequestURI = strings.TrimPrefix(req.RequestURI, "/static/")
 
@@ -58,6 +59,8 @@ func init() {
 
 	//Add the accesslog middleware to the static file routes
 	staticSubrouter.Use(accessLogMiddleware)
+	//Security header middleware
+	staticSubrouter.Use(securityHeadersMiddleware)
 
 	//Register late header setter so other middleware can rewrite headers
 	Router.Use(lateHeaderSetterMiddleware)
@@ -77,7 +80,7 @@ func init() {
 	//Register access log middleware
 	SecureRouter.Use(accessLogMiddleware)
 	//Security header middleware
-	Router.Use(securityHeadersMiddleware)
+	SecureRouter.Use(securityHeadersMiddleware)
 
 	//Register models at gob
 	gob.Register(&db.User{})
