@@ -146,6 +146,8 @@ func serveWinnote(cmd *cobra.Command, args []string) error {
 			//Currently only TLS v1.2 and v1.3 are regarded as secure
 			MinVersion: tls.VersionTLS12,
 
+			PreferServerCipherSuites: true,
+
 			//Only use "strong" cipher suites
 			CurvePreferences: []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
 			CipherSuites: []uint16{
